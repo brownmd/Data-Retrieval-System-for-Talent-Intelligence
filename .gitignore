@@ -1,0 +1,18 @@
+# Data files — too large, contains user data
+*.csv
+*.xlsx
+*.db
+
+# PostgreSQL data
+pgdata/
+
+# Metabase data
+metabase-data/
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Local config
+*.toml
