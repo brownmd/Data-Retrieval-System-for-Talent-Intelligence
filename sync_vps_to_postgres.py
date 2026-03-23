@@ -119,7 +119,30 @@ def main():
     cur.close()
     conn.close()
 
+    # Export updated CSVs
+    export_csvs()
     print(f"  Sync complete.")
+
+
+def export_csvs():
+    import subprocess
+    OUTPUT_DIR = "C:/Users/DavidBrown/AI_Data_Literacy"
+
+    # All geocoded profiles (including Null Island)
+    subprocess.run([
+        "docker", "exec", "ai-literacy-db", "psql", "-U", "ailiteracy", "-d", "ai_literacy", "-c",
+        f"\\COPY (SELECT username, master_ai_literacy_score, literacy_tier, total_events, raw_location, lat, lon FROM profiles WHERE lat IS NOT NULL) TO '/tmp/profiles_all.csv' WITH CSV HEADER;"
+    ], capture_output=True)
+    subprocess.run(["docker", "cp", "ai-literacy-db:/tmp/profiles_all.csv", f"{OUTPUT_DIR}/profiles_all.csv"])
+
+    # Real locations only (excluding Null Island)
+    subprocess.run([
+        "docker", "exec", "ai-literacy-db", "psql", "-U", "ailiteracy", "-d", "ai_literacy", "-c",
+        f"\\COPY (SELECT username, master_ai_literacy_score, literacy_tier, total_events, raw_location, lat, lon FROM profiles WHERE lat <> 0 AND lon <> 0) TO '/tmp/profiles_geolocated.csv' WITH CSV HEADER;"
+    ], capture_output=True)
+    subprocess.run(["docker", "cp", "ai-literacy-db:/tmp/profiles_geolocated.csv", f"{OUTPUT_DIR}/profiles_geolocated.csv"])
+
+    print("  CSVs updated: profiles_all.csv, profiles_geolocated.csv")
 
 
 if __name__ == "__main__":

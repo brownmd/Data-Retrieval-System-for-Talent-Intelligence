@@ -5,6 +5,7 @@
 
 # PostgreSQL data
 pgdata/
+ai-literacy-pgdata/
 
 # Metabase data
 metabase-data/
