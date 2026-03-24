@@ -1,8 +1,11 @@
 """
 GitHub AI Talent - Location Fetcher
 -------------------------------------
-Input:  ai_talent_raw_202101_202603.xlsx  (username, master_ai_literacy_score, literacy_tier, total_events, first_event, last_event)
-Output: final_talent_locations.csv
+Input:  ai_talent_raw_202101_202603.csv  (username, event_type, repo_name, created_at, event_score)
+Output: final_talent_locations.csv       (username, raw_location, cleaned_location)
+
+Deduplicates usernames before hitting the GitHub API — one API call per
+unique profile regardless of how many events they have.
 
 Run on Hetzner VPS inside a screen session:
     screen -S github_fetch
@@ -10,7 +13,7 @@ Run on Hetzner VPS inside a screen session:
     Ctrl+A then D to detach
 
 Override input file:
-    python3 fetch_locations.py my_other_file.xlsx
+    python3 fetch_locations.py my_other_file.csv
 """
 
 import sys
@@ -23,7 +26,7 @@ from dotenv import load_dotenv
 # --- SETUP ---
 load_dotenv()
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
-INPUT_FILE = sys.argv[1] if len(sys.argv) > 1 else 'ai_talent_raw_202101_202603.xlsx'
+INPUT_FILE = sys.argv[1] if len(sys.argv) > 1 else 'ai_talent_raw_202101_202603.csv'
 OUTPUT_FILE = 'final_talent_locations.csv'
 headers = {'Authorization': f'token {GITHUB_TOKEN}'}
 
@@ -225,19 +228,24 @@ def clean_location(raw_loc):
 
 
 def get_data():
-    df = pd.read_excel(INPUT_FILE, engine='openpyxl')
-    print(f"Total users to process: {len(df)}")
+    # Read input — support both CSV (event-level) and xlsx
+    if INPUT_FILE.endswith('.csv'):
+        df = pd.read_csv(INPUT_FILE)
+    else:
+        df = pd.read_excel(INPUT_FILE, engine='openpyxl')
+
+    # Deduplicate: one API call per unique username regardless of event count
+    usernames = df['username'].drop_duplicates().tolist()
+    print(f"Total events: {len(df):,} | Unique usernames: {len(usernames):,}")
 
     if os.path.exists(OUTPUT_FILE):
         processed = set(pd.read_csv(OUTPUT_FILE)['username'].tolist())
-        print(f"Resuming... {len(processed)} users already processed.")
+        print(f"Resuming... {len(processed):,} users already processed.")
     else:
         processed = set()
 
     count = 0
-    for i, row in df.iterrows():
-        user = row['username']
-
+    for user in usernames:
         if user in processed:
             continue
 
@@ -269,11 +277,6 @@ def get_data():
         file_exists = os.path.exists(OUTPUT_FILE)
         pd.DataFrame([{
             'username': user,
-            'master_ai_literacy_score': row['master_ai_literacy_score'],
-            'literacy_tier': row['literacy_tier'],
-            'total_events': row['total_events'],
-            'first_event': row.get('first_event'),
-            'last_event': row.get('last_event'),
             'raw_location': raw_loc,
             'cleaned_location': clean_loc,
         }]).to_csv(OUTPUT_FILE, mode='a', header=not file_exists, index=False)
@@ -282,11 +285,11 @@ def get_data():
         count += 1
 
         if count % 100 == 0:
-            print(f"Progress: {count} new users fetched (total processed: {len(processed)})")
+            print(f"Progress: {count:,} new users fetched (total processed: {len(processed):,})")
 
         time.sleep(0.8)
 
-    print(f"Done. {count} users fetched. Results saved to {OUTPUT_FILE}")
+    print(f"Done. {count:,} users fetched. Results saved to {OUTPUT_FILE}")
 
 
 if __name__ == "__main__":
