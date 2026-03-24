@@ -1,11 +1,9 @@
 -- GitHub AI Talent - BigQuery GitHub Profiles Query
 -- ---------------------------------------------------
--- Table:  githubarchive.month.202601
--- Output: ai_talent_raw_202601  (username, master_ai_literacy_score, literacy_tier, total_events)
+-- Single month:  FROM `githubarchive.month.202601`
+-- Multi-month:   FROM `githubarchive.month.*` WHERE _TABLE_SUFFIX BETWEEN '202301' AND '202603'
 --
--- To query multiple months use wildcard table + suffix filter:
--- FROM `githubarchive.month.*`
--- WHERE _TABLE_SUFFIX BETWEEN '202601' AND '202603'
+-- Output: username, master_ai_literacy_score, literacy_tier, total_events, first_event, last_event
 
 SELECT
   actor.login AS username,
@@ -69,9 +67,14 @@ SELECT
     ELSE 'L1: AI Curious'
   END AS literacy_tier,
 
-  COUNT(*) AS total_events
+  COUNT(*) AS total_events,
 
-FROM `githubarchive.month.202601`
+  -- 3. ACTIVITY DATE RANGE
+  MIN(created_at) AS first_event,
+  MAX(created_at) AS last_event
+
+FROM `githubarchive.month.*`
+WHERE _TABLE_SUFFIX BETWEEN '202101' AND '202603'
 
 WHERE
   -- llama.cpp isolated to guarantee correct regex escaping of the dot

@@ -1,15 +1,19 @@
 """
 GitHub AI Talent - Location Fetcher
 -------------------------------------
-Input:  ai_talent_raw_202601.xlsx  (username, master_ai_literacy_score, literacy_tier, total_events)
+Input:  ai_talent_raw_202101_202603.xlsx  (username, master_ai_literacy_score, literacy_tier, total_events, first_event, last_event)
 Output: final_talent_locations.csv
 
 Run on Hetzner VPS inside a screen session:
     screen -S github_fetch
     python3 fetch_locations.py
     Ctrl+A then D to detach
+
+Override input file:
+    python3 fetch_locations.py my_other_file.xlsx
 """
 
+import sys
 import pandas as pd
 import requests
 import time
@@ -19,7 +23,7 @@ from dotenv import load_dotenv
 # --- SETUP ---
 load_dotenv()
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
-INPUT_FILE = 'ai_talent_raw_202601.xlsx'
+INPUT_FILE = sys.argv[1] if len(sys.argv) > 1 else 'ai_talent_raw_202101_202603.xlsx'
 OUTPUT_FILE = 'final_talent_locations.csv'
 headers = {'Authorization': f'token {GITHUB_TOKEN}'}
 
@@ -268,6 +272,8 @@ def get_data():
             'master_ai_literacy_score': row['master_ai_literacy_score'],
             'literacy_tier': row['literacy_tier'],
             'total_events': row['total_events'],
+            'first_event': row.get('first_event'),
+            'last_event': row.get('last_event'),
             'raw_location': raw_loc,
             'cleaned_location': clean_loc,
         }]).to_csv(OUTPUT_FILE, mode='a', header=not file_exists, index=False)

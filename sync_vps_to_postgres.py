@@ -15,7 +15,7 @@ from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
 VPS_HOST = "root@100.112.67.38"
 VPS_KEY = "/c/Users/DavidBrown/.ssh/id_ed25519"
-VPS_PATH = "/root/github-ai-talent/final_talent_locations.csv"
+VPS_PATH = "/root/github-ai-talent/final_talent_locations.csv"  # 2021-2026 enriched dataset
 
 DB = {
     "host": "127.0.0.1",
@@ -61,15 +61,22 @@ def main():
     inserted = 0
     for row in rows:
         cur.execute("""
-            INSERT INTO profiles (username, master_ai_literacy_score, literacy_tier, total_events, raw_location)
-            VALUES (%s, %s, %s, %s, %s)
-            ON CONFLICT (username) DO NOTHING
+            INSERT INTO profiles (username, master_ai_literacy_score, literacy_tier, total_events, raw_location, first_event, last_event)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (username) DO UPDATE SET
+                master_ai_literacy_score = EXCLUDED.master_ai_literacy_score,
+                literacy_tier = EXCLUDED.literacy_tier,
+                total_events = EXCLUDED.total_events,
+                first_event = EXCLUDED.first_event,
+                last_event = EXCLUDED.last_event
         """, (
             row["username"],
             row["master_ai_literacy_score"] or None,
             row["literacy_tier"],
             row["total_events"] or None,
             row["raw_location"] or None,
+            row.get("first_event") or None,
+            row.get("last_event") or None,
         ))
         if cur.rowcount:
             inserted += 1
@@ -131,14 +138,14 @@ def export_csvs():
     # All geocoded profiles (including Null Island)
     subprocess.run([
         "docker", "exec", "ai-literacy-db", "psql", "-U", "ailiteracy", "-d", "ai_literacy", "-c",
-        f"\\COPY (SELECT username, master_ai_literacy_score, literacy_tier, total_events, raw_location, lat, lon FROM profiles WHERE lat IS NOT NULL) TO '/tmp/profiles_all.csv' WITH CSV HEADER;"
+        f"\\COPY (SELECT username, master_ai_literacy_score, literacy_tier, total_events, raw_location, lat, lon, first_event, last_event FROM profiles WHERE lat IS NOT NULL) TO '/tmp/profiles_all.csv' WITH CSV HEADER;"
     ], capture_output=True)
     subprocess.run(["docker", "cp", "ai-literacy-db:/tmp/profiles_all.csv", f"{OUTPUT_DIR}/profiles_all.csv"])
 
     # Real locations only (excluding Null Island)
     subprocess.run([
         "docker", "exec", "ai-literacy-db", "psql", "-U", "ailiteracy", "-d", "ai_literacy", "-c",
-        f"\\COPY (SELECT username, master_ai_literacy_score, literacy_tier, total_events, raw_location, lat, lon FROM profiles WHERE lat <> 0 AND lon <> 0) TO '/tmp/profiles_geolocated.csv' WITH CSV HEADER;"
+        f"\\COPY (SELECT username, master_ai_literacy_score, literacy_tier, total_events, raw_location, lat, lon, first_event, last_event FROM profiles WHERE lat <> 0 AND lon <> 0) TO '/tmp/profiles_geolocated.csv' WITH CSV HEADER;"
     ], capture_output=True)
     subprocess.run(["docker", "cp", "ai-literacy-db:/tmp/profiles_geolocated.csv", f"{OUTPUT_DIR}/profiles_geolocated.csv"])
 
