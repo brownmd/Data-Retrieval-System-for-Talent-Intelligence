@@ -4,21 +4,18 @@ AI Talent Intelligence is a project I built to understand where AI builders are,
 
 I love maps, reports, data, and dashboards, so I wanted to turn public GitHub activity into something decision-ready: monthly scoring, location enrichment, normalized geography, and analytics views you can explore visually.
 
-Built with AI coding copilots, then rigorously refined through manual validation, SQL testing, and end-to-end pipeline QA.
-
 ## Why I Built This
 
 I started this project to explore talent intelligence:
 
 - Pull data from GitHub archives at scale
 - Build practical TI tools for repeatable analysis
-- Create maps and dashboards
+- Create maps and dashboards for insights
 
 ## What This Project Does
 
 - Ingests public GitHub activity archive data from 2021 to March 2026
 - Scores github user AI engagement monthly
-- Enriches users with public profile location data
 
 ## Current Snapshot
 
