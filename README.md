@@ -1,7 +1,5 @@
 # Building a system for data retrieval
 
-I built this proect to understand where users interacting with AI technologies on GitHub are located.
-
 This is my mini talent intelligence project exploring pulling open useful data about emerging technology for self exploration on the concepts around talent intelligence.
 
 ## Why I Built This
