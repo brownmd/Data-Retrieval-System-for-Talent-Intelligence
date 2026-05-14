@@ -16,12 +16,3 @@ I started this project to explore talent intelligence:
 
 - Ingests public GitHub activity archive data from 2021 to March 2026
 - Scores github user AI engagement monthly
-
-## Current Snapshot
-
-- 5.87M GitHub activity records processed
-- 5,818,220 monthly score rows
-- 2,580,505 unique users
-- 349,524 users with raw profile locations
-- 322,837 normalized locations
-- 179,047 strict-city normalized locations
