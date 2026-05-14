@@ -1,6 +1,6 @@
-# AI Talent Intelligence
+# Building a system for data retrieval
 
-AI Talent Intelligence is a project I built to understand where AI builders are, how they work, and how the ecosystem is changing over time.
+I built this proect to understand where users interacting with AI technologies on GitHub are located.
 
 This is my mini talent intelligence project exploring pulling open useful data about emerging technology for self exploration on the concepts around talent intelligence.
 
@@ -8,7 +8,7 @@ This is my mini talent intelligence project exploring pulling open useful data a
 
 I started this project to explore talent intelligence:
 
-- Pull data from GitHub archives at scale
+- Pull data from GitHub archives
 - Build practical TI tools for repeatable analysis on the GitHub platform
 - Create maps and dashboards for insights
 
